@@ -1,7 +1,4 @@
 # ARGS go first if used on FROM
-ARG OPERATOR_IMAGE=quay.io/costoolkit/elemental-operator-ci:latest
-ARG REGISTER_IMAGE=quay.io/costoolkit/elemental-register-ci:latest
-ARG SYSTEM_AGENT_IMAGE=rancher/system-agent:v0.2.9
 ARG TOOL_IMAGE=quay.io/costoolkit/elemental-cli-ci:latest
 # Binaries and files needed from elemental-toolkit repository
 ARG LUET_VERSION=0.32.5
@@ -23,18 +20,10 @@ RUN system/base-dracut-modules
 
 # elemental-toolkit utilities
 RUN utils/k9s
-RUN utils/nerdctl
-RUN toolchain/cosign
+RUN utils/helm
 RUN selinux/rancher
+RUN selinux/k3s
 
-# elemental-operator
-FROM $OPERATOR_IMAGE as elemental-operator
-
-# elemental-register
-FROM $REGISTER_IMAGE as elemental-register
-
-# rancher-system-agent
-FROM $SYSTEM_AGENT_IMAGE as system-agent
 
 FROM $TOOL_IMAGE as elemental-cli
 
@@ -44,14 +33,6 @@ FROM registry.suse.com/suse/sle-micro-rancher/5.3:latest as default
 
 # Copy installed files from the luet repos
 COPY --from=framework-build /framework /
-# Copy elemental-operator
-COPY --from=elemental-operator /usr/sbin/elemental-operator /usr/sbin/elemental-operator
-# Copy elemental-register
-COPY --from=elemental-register /usr/sbin/elemental-register /usr/sbin/elemental-register
-# Copy elemental-support
-COPY --from=elemental-register /usr/sbin/elemental-support /usr/sbin/elemental-support
-# Copy rancher-system-agent as elemental-system-agent to avoid clashes
-COPY --from=system-agent /usr/bin/rancher-system-agent /usr/sbin/elemental-system-agent
 # Copy elemental
 COPY --from=elemental-cli /usr/bin/elemental /usr/bin/elemental
 
@@ -59,7 +40,7 @@ COPY --from=elemental-cli /usr/bin/elemental /usr/bin/elemental
 COPY framework/files/ /
 
 # Enable services
-RUN systemctl enable NetworkManager sshd elemental-populate-node-labels 
+RUN systemctl enable NetworkManager sshd
 
 ARG IMAGE_TAG=latest
 ARG IMAGE_COMMIT=""
@@ -70,7 +51,7 @@ RUN echo COMMIT=\"${IMAGE_COMMIT}\" >> /etc/os-release
 RUN echo IMAGE_REPO=\"${IMAGE_REPO}\" >> /etc/os-release
 RUN echo IMAGE_TAG=\"${IMAGE_TAG}\" >> /etc/os-release
 RUN echo IMAGE=\"${IMAGE_REPO}:${IMAGE_TAG}\" >> /etc/os-release
-RUN echo GRUB_ENTRY_NAME=\"Elemental\" >> /etc/os-release
+RUN echo GRUB_ENTRY_NAME=\"Watson\" >> /etc/os-release
 
 # Rebuild initrd to setup dracut with the boot configurations
 RUN mkinitrd && \

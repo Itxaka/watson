@@ -1,0 +1,7 @@
+name: "Watson automatic install"
+stages:
+  network.after:
+    - if: '[ -f /run/cos/live_mode ]'
+      name: "Install elemental"
+      commands:
+        - elemental install --reboot /dev/vda

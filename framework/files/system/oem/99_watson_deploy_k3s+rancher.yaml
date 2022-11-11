@@ -1,0 +1,28 @@
+name: "Watson magic"
+stages:
+  initramfs:
+    - name: "Set environment values"
+      environment:
+        KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
+    - name: "Setup hostname"
+      hostname: "watson-node"
+  network.after:
+    - if: '[ ! -f /run/cos/recovery_mode ] && [ ! -f /run/cos/live_mode ]'
+      name: "Install k3s"
+      commands:
+        - curl https://get.k3s.io/ | INSTALL_K3S_VERSION=v1.24.7+k3s1 INSTALL_K3S_SKIP_SELINUX_RPM="true" bash -
+    - if: '[ ! -f /run/cos/recovery_mode ] && [ ! -f /run/cos/live_mode ]'
+      name: "Wait for deployment to finish"
+      commands:
+        - sleep 30
+        - kubectl wait --for=condition=Ready node/watson-node
+    - if: '[ ! -f /run/cos/recovery_mode ] && [ ! -f /run/cos/live_mode ]'
+      name: "Install Rancher"
+      commands:
+        - HELM_CACHE_HOME=/root/.cache/helm HELM_CONFIG_HOME=/root/.config/helm helm env
+        - HELM_CACHE_HOME=/root/.cache/helm HELM_CONFIG_HOME=/root/.config/helm helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+        - HELM_CACHE_HOME=/root/.cache/helm HELM_CONFIG_HOME=/root/.config/helm helm repo add jetstack https://charts.jetstack.io
+        - HELM_CACHE_HOME=/root/.cache/helm HELM_CONFIG_HOME=/root/.config/helm helm repo update
+        - KUBECONFIG=/etc/rancher/k3s/k3s.yaml HELM_CACHE_HOME=/root/.cache/helm HELM_CONFIG_HOME=/root/.config/helm helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set installCRDs=true --version v1.7.1
+        - kubectl -n cert-manager rollout status deploy/cert-manager
+        - KUBECONFIG=/etc/rancher/k3s/k3s.yaml HELM_CACHE_HOME=/root/.cache/helm HELM_CONFIG_HOME=/root/.config/helm helm install rancher rancher-latest/rancher --namespace cattle-system --create-namespace --set hostname=`hostname -I | cut -d' ' -f1`.sslip.io --set replicas=1 --set bootstrapPassword="admin"

@@ -1,5 +1,5 @@
 iso:
   bootloader-in-rootfs: true
-  grub-entry-name: "Elemental Install"
+  grub-entry-name: "Watson Install"
 
 squash-no-compression: true

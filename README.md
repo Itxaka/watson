@@ -1,12 +1,15 @@
-# Elemental
-[![Elemental End-To-End tests with Rancher Manager](https://github.com/rancher/elemental/actions/workflows/e2e.yaml/badge.svg?branch=main)](https://github.com/rancher/elemental/actions/workflows/e2e.yaml)
+## Watson: Auto deploy a node with k3s+rancher on a sle-micro 5.3 image
 
-[![Elemental UI End-To-End tests](https://github.com/rancher/elemental/actions/workflows/ui-e2e.yaml/badge.svg?branch=main)](https://github.com/rancher/elemental/actions/workflows/ui-e2e.yaml)
 
-Elemental is a software stack enabling a centralized, full cloud-native OS management solution with Kubernetes.
+WARNING: this is all for testing. Not giving support. Use at your own risk.
 
-Cluster Node OSes are built and maintained via container images through the [Elemental Toolkit](https://rancher.github.io/elemental-toolkit/) and installed on new hosts using the [Elemental CLI](https://github.com/rancher/elemental-cli).
-
-The [Elemental Operator](https://github.com/rancher/elemental-operator) and the [Rancher System Agent](https://github.com/rancher/system-agent) enable Rancher Manager to fully control Elemental clusters, from the installation and management of the OS on the Nodes to the provisioning of new K3s or RKE2 clusters in a centralized way.
-
-Follow our [Quickstart](https://rancher.github.io/elemental/quickstart/) or see the [full docs](https://rancher.github.io/elemental/) for more info.
+ - Set your target disk for install on `framework/files/system/oem/98_elemental_install_from_iso.yaml` (default /dev/vda)
+ - Set your k3s version on `framework/files/system/oem/99_watson_deploy_k3s+rancher.yaml` (default v1.24.7+k3s1)
+ - Drop any extra [yip](https://github.com/mudler/yip) config files for your system under `framework/files/system/oem`
+ - Build iso `make build_all` (requires docker)
+ - Pop the iso into your machine/QEMU
+ - Wait for it to auto install to the given disk set on the first step and the machine will auto reboot
+ - Reach to your node IP with the help of sslip.io (i.e. ip is 10.0.1.15, go to https://10.0.1.15.sslip.io/dashboard)
+ - Use the password `admin` as the bootstrap password for Rancher to generate a new one
+ - ??????
+ - PROFIT!!!!11!!!!
